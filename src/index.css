@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+    height: 100%;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-neutral-50 text-neutral-800;
+    height: 100%;
+  }
+  
+  #root {
+    height: 100%;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 ease-in-out;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 focus:ring-2 focus:ring-primary-300;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700 focus:ring-2 focus:ring-secondary-300;
+  }
+  
+  .btn-outline {
+    @apply border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100 focus:ring-2 focus:ring-neutral-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden transition-all duration-200;
+  }
+  
+  .food-card {
+    @apply card hover:shadow-md hover:-translate-y-1;
+  }
+  
+  .input {
+    @apply w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300;
+  }
+}
