@@ -57,7 +57,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess }) => {
             setError("Invalid QR code. Please scan a valid table QR code.");
             setIsScanning(false);
           }
-        } catch (err) {
+        } catch {
           setError("Failed to process QR code.");
           setIsScanning(false);
         }
@@ -74,7 +74,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess }) => {
           console.log(errorMessage);
         }
       );
-    } catch (err) {
+    } catch {
       setError("Unable to access camera.");
       setIsScanning(false);
     }

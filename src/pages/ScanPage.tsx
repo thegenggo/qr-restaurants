@@ -1,7 +1,7 @@
 import React from 'react';
 import { QrCode, AlertCircle } from 'lucide-react';
 import QRScanner from '../components/QRScanner';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../contexts/useCart';
 import { useNavigate } from 'react-router-dom';
 
 const ScanPage = () => {

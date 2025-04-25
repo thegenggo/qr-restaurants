@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import CartItem from '../components/CartItem';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../contexts/useCart';
 import { getTableById } from '../data/tablesData';
 import { Order, OrderStatus } from '../types';
 
@@ -11,12 +11,12 @@ const CartPage = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const tableInfo = state.tableId ? getTableById(state.tableId) : null;
-  
+
   const handlePlaceOrder = () => {
     if (state.items.length === 0) return;
-    
+
     setIsProcessing(true);
-    
+
     // Simulate order processing
     setTimeout(() => {
       // Create order object
@@ -36,7 +36,7 @@ const CartPage = () => {
         createdAt: new Date().toISOString(),
         estimatedReadyTime: new Date(Date.now() + 20 * 60000).toISOString(), // 20 minutes from now
       };
-      
+
       // In a real app, this would be saved to a database
       // For now, we'll just redirect to the order status page
       setIsProcessing(false);
@@ -44,11 +44,11 @@ const CartPage = () => {
       navigate(`/order/${newOrder.id}`, { state: { order: newOrder } });
     }, 2000);
   };
-  
+
   const formatPrice = (price: number) => {
     return `$${price.toFixed(2)}`;
   };
-  
+
   return (
     <div className="min-h-screen bg-neutral-50 pb-16">
       <div className="bg-white border-b border-neutral-200 sticky top-16 z-10">
@@ -60,9 +60,9 @@ const CartPage = () => {
               </Link>
               <h1 className="ml-4 text-xl font-bold text-neutral-800">Your Cart</h1>
             </div>
-            
+
             {state.items.length > 0 && (
-              <button 
+              <button
                 onClick={() => clearCart()}
                 className="text-neutral-600 hover:text-error-600 flex items-center text-sm"
               >
@@ -73,7 +73,7 @@ const CartPage = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {state.tableId && tableInfo && (
           <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 mb-6 flex items-center">
@@ -83,13 +83,13 @@ const CartPage = () => {
             </div>
           </div>
         )}
-        
+
         {state.items.length > 0 ? (
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="lg:w-2/3">
               <div className="space-y-4">
                 {state.items.map((item) => (
-                  <CartItem 
+                  <CartItem
                     key={item.id}
                     id={item.id}
                     name={item.name}
@@ -101,11 +101,11 @@ const CartPage = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="lg:w-1/3">
               <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-5 sticky top-32">
                 <h2 className="text-lg font-bold mb-4">Order Summary</h2>
-                
+
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between">
                     <span className="text-neutral-600">Subtotal</span>
@@ -116,20 +116,19 @@ const CartPage = () => {
                     <span className="font-medium">{formatPrice(state.totalPrice * 0.10)}</span>
                   </div>
                 </div>
-                
+
                 <div className="border-t border-neutral-200 pt-3 mb-6">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>{formatPrice(state.totalPrice + (state.totalPrice * 0.10))}</span>
                   </div>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={handlePlaceOrder}
                   disabled={isProcessing || state.items.length === 0}
-                  className={`w-full btn btn-primary py-3 ${
-                    isProcessing ? 'opacity-70 cursor-not-allowed' : ''
-                  }`}
+                  className={`w-full btn btn-primary py-3 ${isProcessing ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
                 >
                   {isProcessing ? (
                     <span className="flex items-center justify-center">
@@ -143,7 +142,7 @@ const CartPage = () => {
                     'Place Order'
                   )}
                 </button>
-                
+
                 <p className="text-xs text-neutral-500 text-center mt-3">
                   By placing your order, you agree to our Terms of Service and Privacy Policy.
                 </p>

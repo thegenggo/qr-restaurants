@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, Edit, ChevronUp, ChevronDown } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../contexts/useCart';
 
 interface CartItemProps {
   id: string;

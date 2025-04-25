@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingCart, ChevronUp, Info } from "lucide-react";
 import CategoryMenu from "../components/CategoryMenu";
 import { getAllCategories, getMenuItemsByCategory } from "../data/menuData";
 import { getTableById } from "../data/tablesData";
-import { useCart } from "../contexts/CartContext";
+import { useCart } from "../contexts/useCart";
 import { Category, MenuItem } from "../types";
 
 const MenuPage = () => {
@@ -79,9 +79,8 @@ const MenuPage = () => {
         <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-neutral-200 p-4 animate-slide-up">
           <div className="max-w-7xl mx-auto">
             <div
-              className={`transition-all duration-300 overflow-hidden ${
-                showCart ? "max-h-60" : "max-h-0"
-              }`}
+              className={`transition-all duration-300 overflow-hidden ${showCart ? "max-h-60" : "max-h-0"
+                }`}
             >
               <div className="py-3 px-1 space-y-2 mb-3">
                 {state.items.slice(0, 3).map((item) => (
@@ -108,9 +107,8 @@ const MenuPage = () => {
                 className="flex items-center text-primary-600 font-medium"
               >
                 <ChevronUp
-                  className={`h-5 w-5 mr-1 transition-transform duration-300 ${
-                    showCart ? "rotate-180" : ""
-                  }`}
+                  className={`h-5 w-5 mr-1 transition-transform duration-300 ${showCart ? "rotate-180" : ""
+                    }`}
                 />
                 {state.totalItems} {state.totalItems === 1 ? "item" : "items"}
               </button>

@@ -12,8 +12,17 @@ import {
   Image as ImageIcon,
   Save
 } from 'lucide-react';
-import { MenuItem } from '../../types';
+import { Category, MenuItem } from '../../types';
 import { supabase } from '../../lib/supabase';
+
+const initialForm = {
+  name: '',
+  description: '',
+  price: 0,
+  category: '',
+  tags: [],
+  available: true,
+}
 
 const MenuItems = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -23,24 +32,33 @@ const MenuItems = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [formData, setFormData] = useState<Partial<MenuItem>>({
-    name: '',
-    description: '',
-    price: 0,
-    category: '',
-    tags: [],
-    available: true,
-  });
+  const [formData, setFormData] = useState<Partial<MenuItem>>(initialForm);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
+    fetchCategories();
     fetchMenus();
   }, [])
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('created_at')
+
+    if (error) {
+      console.error('Error fetching tables:', error);
+      return;
+    }
+
+    setCategories(data || []);
+    setFormData({ ...initialForm, category: data[0]?.id })
+  }
 
   const fetchMenus = async () => {
     const { data, error } = await supabase
       .from('menu_items')
       .select('*')
-      .order('number');
 
     if (error) {
       console.error('Error fetching tables:', error);
@@ -68,6 +86,12 @@ const MenuItems = () => {
     );
   };
 
+  const handleEdit = (item: MenuItem) => {
+    setFormData(item);
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  }
+
   const handleDelete = (item: MenuItem) => {
     setSelectedItem(item);
     setIsDeleteModalOpen(true);
@@ -80,10 +104,11 @@ const MenuItems = () => {
       name: formData.name,
       description: formData.description,
       price: formData.price,
-      category: formData.category,
+      category_id: formData.category,
       tags: formData.tags,
       available: formData.available,
     }
+    console.log(menuData);
 
     if (selectedItem) {
       const { error } = await supabase
@@ -96,6 +121,8 @@ const MenuItems = () => {
         return;
       }
     } else {
+      console.log('create item')
+      console.log(menuData);
       const { error } = await supabase
         .from('menu_items')
         .insert([menuData]);
@@ -106,33 +133,39 @@ const MenuItems = () => {
       }
     }
 
-    setIsModalOpen(false);
-    setSelectedItem(null);
-    setFormData({
-      name: '',
-      description: '',
-      price: 0,
-      category: '',
-      tags: [],
-      available: true,
-    });
-    fetchMenus();
+    reset();
+    await fetchMenus();
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!selectedItem) return;
 
-    setMenuItems(prevItems =>
-      prevItems.filter(item => item.id !== selectedItem.id)
-    );
-    setIsDeleteModalOpen(false);
-    setSelectedItem(null);
+    const { data, error } = await supabase
+      .from('menu_items')
+      .delete()
+      .eq('id', selectedItem.id);
+
+    if (error) {
+      console.error('Delete error:', error.message);
+    } else {
+      console.log('Deleted:', data);
+    }
+
+    reset();
+    await fetchMenus();
   };
 
   const filteredItems = menuItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const reset = () => {
+    setIsDeleteModalOpen(false);
+    setIsModalOpen(false);
+    setFormData({ ...initialForm, category: categories[0]?.id });
+    setSelectedItem(null);
+  }
 
   return (
     <div>
@@ -257,10 +290,9 @@ const MenuItems = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-neutral-800">Edit Menu Item</h2>
+                <h2 className="text-xl font-bold text-neutral-800">{selectedItem ? 'Edit Menu Item' : 'Add Menu Item'}</h2>
                 <button
-                  onClick={() => setIsModalOpen(false)}
-
+                  onClick={reset}
                   className="p-2 hover:bg-neutral-100 rounded-lg"
                 >
                   <X className="h-5 w-5 text-neutral-500" />
@@ -319,11 +351,9 @@ const MenuItems = () => {
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         className="input"
                       >
-                        <option value="starters">Starters</option>
-                        <option value="main-courses">Main Courses</option>
-                        <option value="sides">Sides</option>
-                        <option value="desserts">Desserts</option>
-                        <option value="drinks">Drinks</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>{category.name}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -362,7 +392,7 @@ const MenuItems = () => {
 
               <div className="p-6 border-t border-neutral-200 flex justify-end gap-4">
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={reset}
                   className="btn btn-outline"
                 >
                   Cancel
@@ -393,7 +423,7 @@ const MenuItems = () => {
 
             <div className="p-6 border-t border-neutral-200 flex justify-end gap-4">
               <button
-                onClick={() => setIsDeleteModalOpen(false)}
+                onClick={reset}
                 className="btn btn-outline"
               >
                 Cancel

@@ -98,10 +98,6 @@ const Categories = () => {
     }
     setIsDeleteModalOpen(false);
     setSelectedCategory(null);
-    setFormData({
-      name: '',
-      description: '',
-    });
     await fetchCategories();
   };
 
@@ -130,7 +126,7 @@ const Categories = () => {
         </div>
 
         <div className="divide-y divide-neutral-200">
-          {categories.map((category, index) => (
+          {categories.map((category) => (
             <div key={category.id} className="p-4 flex items-center">
               <div className="flex items-center flex-1">
                 <button className="p-2 hover:bg-neutral-50 rounded cursor-move">
