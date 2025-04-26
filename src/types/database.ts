@@ -156,7 +156,7 @@ export type Database = {
           estimated_ready_time: string | null
           id: string
           status: string
-          table_id: string
+          table_number: number
           total_price: number
         }
         Insert: {
@@ -164,7 +164,7 @@ export type Database = {
           estimated_ready_time?: string | null
           id?: string
           status?: string
-          table_id: string
+          table_number?: number
           total_price?: number
         }
         Update: {
@@ -172,7 +172,7 @@ export type Database = {
           estimated_ready_time?: string | null
           id?: string
           status?: string
-          table_id?: string
+          table_number?: number
           total_price?: number
         }
         Relationships: []

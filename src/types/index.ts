@@ -26,12 +26,14 @@ export interface Table {
 
 export interface Order {
   id?: string;
-  tableId: string;
-  items: OrderItem[];
+  tableNumber?: number;
+  items?: number;
   status: OrderStatus;
   totalPrice: number;
   createdAt: string;
   estimatedReadyTime?: string;
+
+  table?: Partial<Table>;
 }
 
 export interface OrderItem {

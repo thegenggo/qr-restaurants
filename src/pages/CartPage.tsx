@@ -42,7 +42,7 @@ const CartPage = () => {
       .from('orders')
       .insert([
         {
-          table_id: newOrder.tableId,
+          table_number: table?.number,
           status: newOrder.status,
           total_price: newOrder.totalPrice,
           created_at: newOrder.createdAt,
@@ -65,8 +65,8 @@ const CartPage = () => {
   const insertOrderItems = async (newOrder: Order) => {
     const { data, error } = await supabase
       .from('order_items')
-      .insert(newOrder.items.map((item) => ({
-        menu_item_id: item.menuItemId,
+      .insert(state.items.map((item) => ({
+        menu_item_id: item.id,
         order_id: newOrder.id,
         price: item.price,
         quantity: item.quantity,
@@ -90,15 +90,7 @@ const CartPage = () => {
     setIsProcessing(true);
 
     const newOrder: Order = {
-      tableId: state.tableId || 'unknown',
-      items: state.items.map(item => ({
-        id: `ITEM${Math.floor(Math.random() * 10000)}`,
-        menuItemId: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        specialInstructions: item.specialInstructions,
-      })),
+      tableNumber: table?.number,
       status: 'confirmed' as OrderStatus,
       totalPrice: state.totalPrice,
       createdAt: new Date().toISOString(),

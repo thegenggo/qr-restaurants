@@ -1,43 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { 
-  Search, 
+import {
+  Search,
   Filter,
   ChevronDown,
   Eye,
   Download
 } from 'lucide-react';
+import { Order, OrderStatus } from '../../types';
+import { supabase } from '../../lib/supabase';
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [orders, setOrders] = useState<Order[]>([]);
 
-  // Mock orders data
-  const orders = [
-    {
-      id: 'ORD001',
-      table: 'T1',
-      items: 3,
-      total: 45.80,
-      status: 'completed',
-      date: new Date(2024, 2, 15, 14, 30),
-    },
-    {
-      id: 'ORD002',
-      table: 'T3',
-      items: 2,
-      total: 27.50,
-      status: 'preparing',
-      date: new Date(2024, 2, 15, 14, 45),
-    },
-    {
-      id: 'ORD003',
-      table: 'T2',
-      items: 4,
-      total: 62.30,
-      status: 'pending',
-      date: new Date(2024, 2, 15, 15, 0),
-    },
-  ];
+  const fetchOrders = async () => {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items ( id )
+        `)
+
+    if (error || !data) {
+      console.error(error);
+      return;
+    }
+
+    setOrders(data.map((item) => ({
+      id: item.id,
+      tableNumber: item.table_number,
+      items: item.order_items.length,
+      status: item.status as OrderStatus,
+      totalPrice: item.total_price,
+      createdAt: item.created_at ?? '',
+      estimatedReadyTime: item.estimated_ready_time ?? '',
+    })))
+  }
+
+  useEffect(() => {
+    fetchOrders();
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -105,16 +108,16 @@ const Orders = () => {
               {orders.map((order) => (
                 <tr key={order.id} className="border-b border-neutral-200 last:border-0">
                   <td className="px-6 py-4 font-medium text-neutral-800">{order.id}</td>
-                  <td className="px-6 py-4 text-neutral-600">Table {order.table}</td>
+                  <td className="px-6 py-4 text-neutral-600">Table {order.tableNumber}</td>
                   <td className="px-6 py-4 text-neutral-600">{order.items} items</td>
-                  <td className="px-6 py-4 font-medium">${order.total.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-medium">${order.totalPrice.toFixed(2)}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(order.status)}`}>
                       {order.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-neutral-600">
-                    {format(order.date, 'MMM d, yyyy h:mm a')}
+                    {format(order.createdAt, 'MMM d, yyyy h:mm a')}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end">
