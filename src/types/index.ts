@@ -21,10 +21,11 @@ export interface Table {
   number: number;
   section: string;
   seats: number;
+  status: string;
 }
 
 export interface Order {
-  id: string;
+  id?: string;
   tableId: string;
   items: OrderItem[];
   status: OrderStatus;

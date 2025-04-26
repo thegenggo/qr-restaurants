@@ -47,7 +47,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onSuccess }) => {
             tableId = decodedText;
           }
 
-          if (tableId && tableId.startsWith("T")) {
+          if (tableId) {
             if (onSuccess) {
               onSuccess(tableId);
             } else {

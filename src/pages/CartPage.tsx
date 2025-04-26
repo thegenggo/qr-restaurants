@@ -1,48 +1,123 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2, ShoppingCart } from 'lucide-react';
 import CartItem from '../components/CartItem';
 import { useCart } from '../contexts/useCart';
-import { getTableById } from '../data/tablesData';
-import { Order, OrderStatus } from '../types';
+import { Order, OrderStatus, Table } from '../types';
+import { supabase } from '../lib/supabase';
 
 const CartPage = () => {
   const { state, clearCart } = useCart();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
-  const tableInfo = state.tableId ? getTableById(state.tableId) : null;
+  const [table, setTable] = useState<Table>();
 
-  const handlePlaceOrder = () => {
+  const fetchTable = async () => {
+    const { data, error } = await supabase
+      .from('restaurant_tables')
+      .select('*')
+      .eq('id', state.tableId ?? '')
+      .single()
+
+    if (error || !data) {
+      console.error("Failed to fetch table data");
+      throw error;
+    }
+
+    setTable({
+      id: data.id,
+      number: data.number,
+      section: data.section,
+      seats: data.seats,
+      status: data.status,
+    });
+  }
+
+  useEffect(() => {
+    fetchTable();
+  }, [table])
+
+  const insertOrder = async (newOrder: Order) => {
+    const { data, error } = await supabase
+      .from('orders')
+      .insert([
+        {
+          table_id: newOrder.tableId,
+          status: newOrder.status,
+          total_price: newOrder.totalPrice,
+          created_at: newOrder.createdAt,
+          estimated_ready_time: newOrder.estimatedReadyTime,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase Insert Error:', error.message);
+      alert('Failed to place order. Please try again.');
+      setIsProcessing(false);
+      return;
+    }
+
+    return data;
+  }
+
+  const insertOrderItems = async (newOrder: Order) => {
+    const { data, error } = await supabase
+      .from('order_items')
+      .insert(newOrder.items.map((item) => ({
+        menu_item_id: item.menuItemId,
+        order_id: newOrder.id,
+        price: item.price,
+        quantity: item.quantity,
+        special_instructions: item.specialInstructions
+      })))
+      .select()
+
+    if (error) {
+      console.error('Supabase Insert Error:', error.message);
+      alert('Failed to place order. Please try again.');
+      setIsProcessing(false);
+      return;
+    }
+
+    return data;
+  }
+
+  const handlePlaceOrder = async () => {
     if (state.items.length === 0) return;
 
     setIsProcessing(true);
 
-    // Simulate order processing
-    setTimeout(() => {
-      // Create order object
-      const newOrder: Order = {
-        id: `ORD${Math.floor(Math.random() * 10000)}`,
-        tableId: state.tableId || 'unknown',
-        items: state.items.map(item => ({
-          id: `ITEM${Math.floor(Math.random() * 10000)}`,
-          menuItemId: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          specialInstructions: item.specialInstructions,
-        })),
-        status: 'confirmed' as OrderStatus,
-        totalPrice: state.totalPrice,
-        createdAt: new Date().toISOString(),
-        estimatedReadyTime: new Date(Date.now() + 20 * 60000).toISOString(), // 20 minutes from now
-      };
+    const newOrder: Order = {
+      tableId: state.tableId || 'unknown',
+      items: state.items.map(item => ({
+        id: `ITEM${Math.floor(Math.random() * 10000)}`,
+        menuItemId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        specialInstructions: item.specialInstructions,
+      })),
+      status: 'confirmed' as OrderStatus,
+      totalPrice: state.totalPrice,
+      createdAt: new Date().toISOString(),
+      estimatedReadyTime: new Date(Date.now() + 20 * 60000).toISOString(), // 20 minutes from now
+    };
 
-      // In a real app, this would be saved to a database
-      // For now, we'll just redirect to the order status page
-      setIsProcessing(false);
+    try {
+      const order = await insertOrder(newOrder);
+      newOrder.id = order?.id;
+      await insertOrderItems(newOrder)
+
       clearCart();
       navigate(`/order/${newOrder.id}`, { state: { order: newOrder } });
-    }, 2000);
+    } catch (err) {
+      console.error('Unexpected Error:', err);
+      alert('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -75,11 +150,11 @@ const CartPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {state.tableId && tableInfo && (
+        {state.tableId && table && (
           <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 mb-6 flex items-center">
             <div className="text-primary-700">
-              <p className="font-medium">Table {tableInfo.number}</p>
-              <p className="text-sm">{tableInfo.section} Section</p>
+              <p className="font-medium">Table {table.number}</p>
+              <p className="text-sm">{table.section} Section</p>
             </div>
           </div>
         )}
@@ -169,14 +244,5 @@ const CartPage = () => {
     </div>
   );
 };
-
-// Helper component for ShoppingCart
-const ShoppingCart = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
-    <path d="M3 6h18"></path>
-    <path d="M16 10a4 4 0 0 1-8 0"></path>
-  </svg>
-);
 
 export default CartPage;

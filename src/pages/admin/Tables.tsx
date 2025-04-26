@@ -9,15 +9,15 @@ import {
   X
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { RestaurantTable } from '../../types/database';
+import { Table } from '../../types';
 import QRCode from 'react-qr-code';
 
 const Tables = () => {
-  const [tables, setTables] = useState<RestaurantTable[]>([]);
+  const [tables, setTables] = useState<Table[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedTable, setSelectedTable] = useState<RestaurantTable | null>(null);
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [formData, setFormData] = useState({
     number: '',
     section: '',
@@ -81,7 +81,7 @@ const Tables = () => {
     fetchTables();
   };
 
-  const handleEdit = (table: RestaurantTable) => {
+  const handleEdit = (table: Table) => {
     setSelectedTable(table);
     setFormData({
       number: table.number.toString(),
@@ -284,7 +284,7 @@ const Tables = () => {
                     <QrCode className="h-5 w-5 text-neutral-500" />
                   </div>
                   <div className="flex justify-center bg-white p-4 rounded-lg">
-                    <QRCode value={`T${formData.number}`} size={128} />
+                    <QRCode value={selectedTable.id} size={128} />
                   </div>
                 </div>
               )}
