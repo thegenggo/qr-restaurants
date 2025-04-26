@@ -38,5 +38,5 @@ jobs:
           docker load < /tmp/qr-restaurants.tar.gz
           cd docker
           docker compose down qr-restaurants-app || true
-          docker compose up qr-restaurants-app || true
+          docker compose up -d qr-restaurants-app || true
         EOF
