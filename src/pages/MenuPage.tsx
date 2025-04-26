@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingCart, ChevronUp, Info } from "lucide-react";
 import CategoryMenu from "../components/CategoryMenu";
@@ -9,81 +9,79 @@ import { supabase } from "../lib/supabase";
 const MenuPage = () => {
   const { tableId } = useParams<{ tableId: string }>();
   const navigate = useNavigate();
-  const { state, setTable } = useCart();
+  const { state } = useCart();
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [tableName, setTableName] = useState("");
   const [showCart, setShowCart] = useState(false);
 
+  const fetchData = useCallback(async (tableId: string) => {
+    try {
+      // Get table info
+      const { data: table, error: tableError } = await supabase
+        .from("restaurant_tables")
+        .select("*")
+        .eq("id", tableId)
+        .single();
+
+      if (tableError) {
+        console.error("Error fetching table:", tableError);
+        setTableName(`Table ${tableId}`);
+      } else {
+        setTableName(`Table ${table.number} (${table.section})`);
+      }
+
+      // Get all categories
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*");
+
+      if (categoriesError) {
+        console.error("Error fetching categories:", categoriesError);
+      } else {
+        setCategories(categoriesData.map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description ?? '',
+        })));
+      }
+
+      // Get all menu items (with optional category relationship)
+      const { data: itemsData, error: itemsError } = await supabase
+        .from("menu_items")
+        .select(`
+          *,
+          categories ( id, name )
+          `);
+
+      if (itemsError) {
+        console.error("Error fetching menu items:", itemsError);
+      } else {
+        setMenuItems(itemsData.map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description ?? '',
+          price: item.price,
+          image: item.image_url ?? '',
+          category: item.categories?.name ?? '',
+          categoryId: item.categories?.id,
+          tags: item.tags ?? [],
+          available: item.available ?? true,
+        })));
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+    }
+  }, []);
+
   useEffect(() => {
     if (!tableId) {
-      navigate("/scan");
+      navigate('/scan');
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        setTable(tableId);
-
-        // Get table info
-        const { data: table, error: tableError } = await supabase
-          .from("restaurant_tables")
-          .select("*")
-          .eq("id", tableId)
-          .single();
-
-        if (tableError) {
-          console.error("Error fetching table:", tableError);
-          setTableName(`Table ${tableId}`);
-        } else {
-          setTableName(`Table ${table.number} (${table.section})`);
-        }
-
-        // Get all categories
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from("categories")
-          .select("*");
-
-        if (categoriesError) {
-          console.error("Error fetching categories:", categoriesError);
-        } else {
-          setCategories(categoriesData.map((item) => ({
-            id: item.id,
-            name: item.name,
-            description: item.description ?? '',
-          })));
-        }
-
-        // Get all menu items (with optional category relationship)
-        const { data: itemsData, error: itemsError } = await supabase
-          .from("menu_items")
-          .select(`
-            *,
-            categories ( id, name )
-            `);
-
-        if (itemsError) {
-          console.error("Error fetching menu items:", itemsError);
-        } else {
-          setMenuItems(itemsData.map((item) => ({
-            id: item.id,
-            name: item.name,
-            description: item.description ?? '',
-            price: item.price,
-            image: item.image_url ?? '',
-            category: item.categories?.name ?? '',
-            categoryId: item.categories?.id,
-            tags: item.tags ?? [],
-            available: item.available ?? true,
-          })));
-        }
-      } catch (error) {
-        console.error("Unexpected error:", error);
-      }
-    };
-
-    fetchData();
-  }, [navigate, setTable, tableId]);
+    fetchData(tableId);
+  }, [fetchData, tableId, navigate]);
 
   const handleViewCart = () => {
     navigate("/cart");
@@ -92,10 +90,6 @@ const MenuPage = () => {
   const formatPrice = (price: number) => {
     return `$${price.toFixed(2)}`;
   };
-
-  if (!tableId) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-neutral-50 pb-20">
