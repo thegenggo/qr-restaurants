@@ -22,10 +22,12 @@ jobs:
 
     - name: Build Docker image
       run: |
-        echo "VITE_SUPABASE_URL=${{ vars.VITE_SUPABASE_URL }}" >> ./.env 
-        echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> ./.env
-        cat .env
-        docker build -t qr-restaurants:latest .
+        echo "${{ secrets.SUPABASE_KEY }}" > supabase_key.txt
+        echo "${{ secrets.SUPABASE_URL }}" > supabase_url.txt
+        docker build \
+        --secret id=supabase_key,src=supabase_key.txt \
+        --secret id=supabase_url,src=supabase_url.txt \
+        -t qr-restaurants:latest .
 
     - name: Save Docker image
       run: |
