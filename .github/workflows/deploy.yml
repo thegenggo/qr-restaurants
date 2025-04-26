@@ -1,0 +1,42 @@
+name: Deploy Docker Image to VPS
+
+on:
+  push:
+    branches:
+      - main  # or whichever branch you want to trigger deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Build Docker image
+      run: |
+        docker build -t qr-restaurants:latest .
+
+    - name: Save Docker image
+      run: |
+        docker save qr-restaurants:latest | gzip > qr-restaurants.tar.gz
+
+    - name: Copy image to VPS
+      run: |
+        scp qr-restaurants.tar.gz ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/qr-restaurants.tar.gz
+
+    - name: Load and run Docker image on VPS
+      run: |
+        ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          docker load < /tmp/qr-restaurants.tar.gz
+          cd docker
+          docker compose down qr-restaurants-app || true
+          docker compose up qr-restaurants-app || true
+        EOF
