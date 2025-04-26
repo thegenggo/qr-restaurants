@@ -1,4 +1,5 @@
 import { Table } from '../types';
+import { supabase } from '../lib/supabase';
 
 export const tables: Table[] = [
   {
@@ -33,6 +34,6 @@ export const tables: Table[] = [
   }
 ];
 
-export const getTableById = (id: string): Table | undefined => {
-  return tables.find(table => table.id === id);
+export const getTableById = async (id: string) => {
+  return await supabase.from('restaurant_tables').select().eq('id', id);
 };

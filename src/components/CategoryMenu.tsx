@@ -11,7 +11,7 @@ const CategoryMenu: React.FC<CategoryMenuProps> = ({ categories, menuItems }) =>
   const [activeCategory, setActiveCategory] = useState<string>(categories[0]?.id || '');
 
   const getItemsByCategory = (categoryId: string) => {
-    return menuItems.filter(item => item.category === categoryId && item.available);
+    return menuItems.filter(item => item.categoryId === categoryId && item.available);
   };
 
   const handleCategoryChange = (categoryId: string) => {

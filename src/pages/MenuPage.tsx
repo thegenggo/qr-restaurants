@@ -6,6 +6,7 @@ import { getAllCategories, getMenuItemsByCategory } from "../data/menuData";
 import { getTableById } from "../data/tablesData";
 import { useCart } from "../contexts/useCart";
 import { Category, MenuItem } from "../types";
+import { supabase } from "../lib/supabase";
 
 const MenuPage = () => {
   const { tableId } = useParams<{ tableId: string }>();
@@ -21,25 +22,70 @@ const MenuPage = () => {
       navigate("/scan");
       return;
     }
-    // Set the table ID in cart context
-    setTable(tableId);
-    // Load table info
-    const tableInfo = getTableById(tableId);
-    if (tableInfo) {
-      setTableName(`Table ${tableInfo.number} (${tableInfo.section})`);
-    } else {
-      setTableName(`Table ${tableId}`);
-    }
-    // Load categories and menu items
-    const allCategories = getAllCategories();
-    setCategories(allCategories);
-    const allItems: MenuItem[] = [];
-    allCategories.forEach((category) => {
-      const items = getMenuItemsByCategory(category.id);
-      allItems.push(...items);
-    });
-    setMenuItems(allItems);
-  }, [tableId, navigate, setTable]);
+
+    const fetchData = async () => {
+      try {
+        setTable(tableId);
+
+        // Get table info
+        const { data: table, error: tableError } = await supabase
+          .from("restaurant_tables")
+          .select("*")
+          .eq("id", tableId)
+          .single();
+
+        if (tableError) {
+          console.error("Error fetching table:", tableError);
+          setTableName(`Table ${tableId}`);
+        } else {
+          setTableName(`Table ${table.number} (${table.section})`);
+        }
+
+        // Get all categories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from("categories")
+          .select("*");
+
+        if (categoriesError) {
+          console.error("Error fetching categories:", categoriesError);
+        } else {
+          setCategories(categoriesData.map((item) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description ?? '',
+          })));
+        }
+
+        // Get all menu items (with optional category relationship)
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("menu_items")
+          .select(`
+            *,
+            categories ( id, name )
+            `);
+
+        if (itemsError) {
+          console.error("Error fetching menu items:", itemsError);
+        } else {
+          setMenuItems(itemsData.map((item) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description ?? '',
+            price: item.price,
+            image: item.image_url ?? '',
+            category: item.categories?.name ?? '',
+            categoryId: item.categories?.id,
+            tags: item.tags ?? [],
+            available: item.available ?? true,
+          })));
+        }
+      } catch (error) {
+        console.error("Unexpected error:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleViewCart = () => {
     navigate("/cart");

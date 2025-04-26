@@ -7,6 +7,7 @@ export interface MenuItem {
   category: string;
   tags: string[];
   available: boolean;
+  categoryId?: string;
 }
 
 export interface Category {
