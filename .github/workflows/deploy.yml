@@ -23,6 +23,10 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t qr-restaurants:latest .
+      env:
+        VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
 
     - name: Save Docker image
       run: |

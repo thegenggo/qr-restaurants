@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingCart, ChevronUp, Info } from "lucide-react";
 import CategoryMenu from "../components/CategoryMenu";
-import { getAllCategories, getMenuItemsByCategory } from "../data/menuData";
-import { getTableById } from "../data/tablesData";
 import { useCart } from "../contexts/useCart";
 import { Category, MenuItem } from "../types";
 import { supabase } from "../lib/supabase";
@@ -85,7 +83,7 @@ const MenuPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [navigate, setTable, tableId]);
 
   const handleViewCart = () => {
     navigate("/cart");

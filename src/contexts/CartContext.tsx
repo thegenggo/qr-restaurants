@@ -1,5 +1,6 @@
-import { createContext, useReducer, ReactNode } from 'react';
+import { useReducer, ReactNode } from 'react';
 import { MenuItem } from '../types';
+import { CartContext } from './useCart';
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -21,7 +22,7 @@ type CartAction =
   | { type: 'CLEAR_CART' }
   | { type: 'SET_TABLE'; payload: { tableId: string } };
 
-interface CartContextType {
+export interface CartContextType {
   state: CartState;
   addItem: (item: MenuItem, quantity: number, specialInstructions?: string) => void;
   removeItem: (id: string) => void;
@@ -30,8 +31,6 @@ interface CartContextType {
   clearCart: () => void;
   setTable: (tableId: string) => void;
 }
-
-export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const initialState: CartState = {
   items: [],

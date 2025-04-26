@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trash2, ShoppingCart } from 'lucide-react';
 import CartItem from '../components/CartItem';
@@ -12,7 +12,7 @@ const CartPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [table, setTable] = useState<Table>();
 
-  const fetchTable = async () => {
+  const fetchTable = useCallback(async () => {
     const { data, error } = await supabase
       .from('restaurant_tables')
       .select('*')
@@ -31,11 +31,11 @@ const CartPage = () => {
       seats: data.seats,
       status: data.status,
     });
-  }
+  }, [state.tableId]);
 
   useEffect(() => {
     fetchTable();
-  }, [table])
+  }, [fetchTable])
 
   const insertOrder = async (newOrder: Order) => {
     const { data, error } = await supabase
