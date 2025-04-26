@@ -51,21 +51,43 @@ const MenuItems = () => {
       return;
     }
 
-    setCategories(data || []);
+    setCategories(data.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description ?? ''
+    })) || []);
     setFormData({ ...initialForm, category: data[0]?.id })
   }
 
   const fetchMenus = async () => {
     const { data, error } = await supabase
       .from('menu_items')
-      .select('*')
+      .select(`
+        id,
+        name,
+        description,
+        price,
+        image_url,
+        categories ( id, name ),
+        tags,
+        available
+        `)
 
     if (error) {
       console.error('Error fetching tables:', error);
       return;
     }
 
-    setMenuItems(data || []);
+    setMenuItems(data.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description ?? '',
+      price: item.price,
+      image: item.image_url ?? '',
+      category: item.categories?.name ?? '',
+      tags: item.tags ?? [],
+      available: item.available ?? true
+    })) || []);
   };
 
   const handleSort = (field: string) => {
@@ -101,12 +123,13 @@ const MenuItems = () => {
     e.preventDefault();
 
     const menuData = {
-      name: formData.name,
-      description: formData.description,
-      price: formData.price,
-      category_id: formData.category,
-      tags: formData.tags,
-      available: formData.available,
+      name: formData.name ?? '',
+      description: formData.description ?? '',
+      price: formData.price ?? 0,
+      category_id: formData.category ?? '',
+      image_url: formData.image,
+      tags: formData.tags ?? [],
+      available: formData.available ?? true,
     }
     console.log(menuData);
 
